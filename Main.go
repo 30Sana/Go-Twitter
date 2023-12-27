@@ -1,7 +1,7 @@
 package main
 
 import (
-	"30SanaPkg/webhook"
+	// "30SanaPkg/webhook"
 	"bufio"
 	"bytes"
 	"crypto/tls"
@@ -11,19 +11,24 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
-	"unsafe"
 )
 
-var kernel32 = syscall.NewLazyDLL("kernel32.dll")
-var procSetConsoleTitleW = kernel32.NewProc("SetConsoleTitleW")
+// var kernel32 = syscall.NewLazyDLL("kernel32.dll")
+// var procSetConsoleTitleW = kernel32.NewProc("SetConsoleTitleW")
+
+var isWindows = runtime.GOOS == "windows"
 
 func setConsoleTitle(title string) {
-	titlePtr, _ := syscall.UTF16PtrFromString(title)
-	procSetConsoleTitleW.Call(uintptr(unsafe.Pointer(titlePtr)))
+	if isWindows {
+		// titlePtr, _ := syscall.UTF16PtrFromString(title)
+		// procSetConsoleTitleW.Call(uintptr(unsafe.Pointer(titlePtr)))
+	} else {
+		fmt.Printf("\033]0;%s\007", title)
+	}
 }
 
 func main() {
@@ -56,7 +61,7 @@ func main() {
 	}
 	var data = []byte(nil)
 
-	numConcurrentRequests := 300 // Stable / Good speed --> 750 / 5
+	numConcurrentRequests := 100 // Stable / Good speed --> 750 / 5
 	batchSize := 1
 	totalRequestLimit := 1000000 // 1000000
 
@@ -185,13 +190,14 @@ func httpRequest(client *http.Client, targetURL string, method string, data []by
 		usernameValue := queryParams.Get("username")
 
 		// Sending webhook
-		webhookURL := "https://discord.com/api/webhooks/1171822044514623589/VsxoCd9L3GaqbM5f5oT9Fmmk6ajzk1LxWuGbM-wg6iO426BZmhxAJKzOsgb2d1KKquH9"
+		// webhookURL := "https://discord.com/api/webhooks/1171822044514623589/VsxoCd9L3GaqbM5f5oT9Fmmk6ajzk1LxWuGbM-wg6iO426BZmhxAJKzOsgb2d1KKquH9"
 		message := "Twitter username available.\n```" + usernameValue + "```"
 
-		err1 := webhook.SendDiscordWebhook(webhookURL, message)
-		if err1 != nil {
-			fmt.Println("Error sending webhook:", err1)
-		}
+		fmt.Println(message)
+		// err1 := webhook.SendDiscordWebhook(webhookURL, message)
+		// if err1 != nil {
+		// fmt.Println("Error sending webhook:", err1)
+		// }
 
 	} else {
 		// Passing
